@@ -14,6 +14,9 @@ Fonctionnalités principales de notre application :
 5) Indiquer le premier président à parler d'un thème donné.
 6) Afficher, hormis les mots dits « non importants », quel(s) est(sont) le(s) mot(s) que tous les présidents ont évoqués.
 
+
+!!! Attention : si vous utiliser pycharm, ajoutez "./" devant pour les chemins d'accès ("./speeches" et pas "speeches") !!!
+
 Instructions d’exécution du code :
 # Call of the function
 # Fonction whoes extract the name of presidents
