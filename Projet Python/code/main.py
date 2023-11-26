@@ -1,8 +1,5 @@
 from functions import *
 
-def afficher():
-    pass
-
 dossier = "cleaned"
 tf_list = tf_score(dossier)
 idf = idf_score(dossier)
