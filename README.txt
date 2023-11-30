@@ -4,7 +4,7 @@ Dauvel Alexandre
 Mathis Gosselin
 
 Lien vers le déport Git :
-https://github.com/KOR0N/Python_Project.git 
+https://github.com/KOR0N/Projet-Python
 
 Fonctionnalités principales de notre application :
 1) Afficher la liste des mots les moins importants dans le corpus de documents.  
