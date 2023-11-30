@@ -3,7 +3,7 @@ Le Galliard Alexandre
 Dauvel Alexandre
 Mathis Gosselin
 
-Lien vers le déport Git :
+Lien vers le dépot Git :
 https://github.com/KOR0N/Projet-Python
 
 Fonctionnalités principales de notre application :
