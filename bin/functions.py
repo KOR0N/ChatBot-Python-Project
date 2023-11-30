@@ -352,5 +352,5 @@ def mots_dit_par_tous_les_presidents(matrice_tf_idf,tf_list):
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 # Utiliser les fonctions avec les données existantes
-directory = "./speeches"
+directory = "speeches"
 files_names = list_of_files(directory, "txt")
