@@ -1,11 +1,20 @@
 from functions import *
 
-dossier = "cleaned"
+dossier = "./speeche/cleaned"
 tf_list = tf_score(dossier)
 idf = idf_score(dossier)
-matrice_tf_idf = association_tf_idf(tf_list,idf,dossier)
-print(matrice_tf_idf)
+matrice_tf_idf = association_tf_idf(tf_list,idf)
+# print(matrice_tf_idf)
+question = tokenisation("Bonjour messieurs comment ca va tout le monde bienvenue sur mon programme pyton je suis un gars président ?")
+tf_q = tf(question)
+matrice = tf_idf(tf_q,idf)
+print(matrice)
+s = calculer_similarite_cosinus(matrice,matrice_tf_idf)
+s = trouver_document_similaire(s)
+print(s)
 
+
+# presence(question, idf)
 if __name__ == "__main__":
     question = int(input("Voici différentes fonctions disponibles :\n   1) Afficher la liste des mots les moins importants dans le corpus de documents.\n   2) Afficher le(s) mot(s) ayant le score TD-IDF le plus élevé.\n   3) Indiquer le(s) mot(s) le(s) plus répété(s) par un président.\n   4) Indiquer le(s) nom(s) du (des) président(s) qui a (ont) parlé d'un mot à choisir et celui qui l’a répété le plus de fois.\n   5) Indiquer le premier président à parler d'un thème/sujet choisi.\n   6) Hormis les mots dits « non importants », quel(s) est(sont) le(s) mot(s) que tous les présidents ont évoqués.\n   7) QUITTER\nVeuillez choisir une de ces options (1/2/3/4/5/6/7) :"))
     while question < 1 or question > 7 :
@@ -34,5 +43,5 @@ if __name__ == "__main__":
             theme = input("\nVeuillez entrer un theme à rechercher : ")
             premier_president_dire_theme(theme,tf_list)
         case 6:
-            print(mots_dit_par_tous_les_presidents(matrice_tf_idf,tf_list))
+            mots_dit_par_tous_les_presidents(matrice_tf_idf,tf_list)
 

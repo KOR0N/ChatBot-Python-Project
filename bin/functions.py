@@ -1,6 +1,44 @@
 import os
 import math
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
+
+""""""""""""""""""""""""""""" Fonctions enfants """""""""""""""""""""""""""""""""""
+
+def convertir_majuscule_en_minuscules(contenu):
+    contenu_minuscule = ""
+    # Convertir en minuscules 
+    for caractere in contenu :
+        # Vérifie si c'est une lettre majuscule
+        if 65 <= ord(caractere) <= 90:
+            contenu_minuscule += chr(ord(caractere)+32)
+        else:
+            contenu_minuscule += caractere
+    return contenu_minuscule
+
+def suppression_ponctuation(contenu):
+    replace_to_nothing = "().,;!?:"
+    replace_to_scape = "'-"
+    new_contenu = ""
+
+    for caractere in contenu :
+
+        # Faire une sélection de tous les caractere devant être supprimé 
+        if caractere == "\n" or caractere in replace_to_scape:
+            new_contenu += " "
+
+        # Faire une sélection de tous les caractere devant être remplacé par un espace 
+        elif  caractere in replace_to_nothing:
+            new_contenu += ""
+
+        # Les autres sont ajoutés au nouveau contenu
+        else:
+            new_contenu += caractere
+
+    return new_contenu
+
+""""""""""""""""""""""""""""" Fonctions parents """""""""""""""""""""""""""""""""""
 
 def list_of_files(directory, extension):
     files_names = []
@@ -25,6 +63,7 @@ def recup_nom(files_names):
         presidents_name.append(filename)
     return presidents_name
 
+
 def name_association(presidents_name):
     for names in range(len(presidents_name)):
         # Attribuer pour chaque nom de président le prénom associé
@@ -43,65 +82,30 @@ def name_association(presidents_name):
                 presidents_name[names] = "Valéri " + presidents_name[names]
     return presidents_name
 
+
 def presidents_name_display(presidents_name):
     print("Les présidents sont :")
     for i in set(presidents_name):
         print(i)
 
-def convertir_majuscule_en_minuscules(dossier_entree,dossier_sortie):
-    # Parcourir chaque fichier dans le dossier d'entré
-    for fichier in os.listdir(dossier_entree):
-        fichier_entree = os.path.join(dossier_entree, fichier)
 
-        with open(fichier_entree, 'r') as file:
-            contenu = file.read()
-            contenu_minuscule = ""
-
-            # Convertir en minuscules 
-            for caractere in contenu :
-                # Vérifie si c'est une lettre majuscule
-                if 65 <= ord(caractere) <= 90:
-                    contenu_minuscule += chr(ord(caractere)+32)
-                else:
-                    contenu_minuscule += caractere
-
-            # Créer le chemin du nouveau fichier dans le dossier de sortie
-            fichier_sortie = os.path.join(dossier_sortie, fichier)
-
-            # Écrire le contenu converti dans le nouveau fichier
-            with open(fichier_sortie, 'w') as file:
-                file.write(contenu_minuscule)
-
-
-def suppression_ponctuation(dossier):
+def suppression_ponctuation_fichier(dossier):
     # Parcourir chaque fichier dans le dossier d'entré
     for fichier in os.listdir(dossier):
         fichier_entree = os.path.join(dossier, fichier)
 
         with open(fichier_entree, 'r') as file:
             contenu = file.read()
-            new_contenu = ""
-
-            for caractere in contenu :
-
-                # Faire une sélection de tous les caractere devant être supprimé 
-                if caractere == "." or caractere == "," or caractere == ";" or caractere == "!" or caractere == "?" or caractere == ":" :
-                    new_contenu += ""
-
-                # Faire une sélection de tous les caractere devant être remplacé par un espace 
-                elif caractere == "\n" or caractere == "'" or caractere == "-":
-                    new_contenu += " "
-
-                # Les autres sont ajoutés au nouveau contenu
-                else:
-                    new_contenu += caractere
-
+            contenu = convertir_majuscule_en_minuscules(contenu)
+            contenu = suppression_ponctuation(contenu)
+            
             # Écrire le contenu converti dans le nouveau fichier
             with open(fichier_entree, 'w') as file:
-                file.write(new_contenu)
+                file.write(contenu)
 
-# convertir_majuscule_en_minuscules("speeches","cleaned")
-# suppression_ponctuation("cleaned")
+#convertir_majuscule_en_minuscules("speeches","cleaned")
+#suppression_ponctuation("cleaned")
+
 
 def tf_score(dossier): 
     tf = []
@@ -133,17 +137,16 @@ def tf_score(dossier):
 
     return tf 
 
-# print(tf_score("Voici un exemple de chaîne de caractere, elle sert à tester si la fonction marche bien par exemple le mot exemple apparait 3 fois :)"))
-
 
 def idf_score(dossier):
 
     # Dictionnaire pour stocker le nombre de documents contenant chaque mot
     dico_frequence = {}
     total_documents = 0
-
     # Parcourir tous les fichiers dans le répertoire du corpus
     for fichier in os.listdir(dossier):
+        present = []
+        total_documents+=1
         fichier_entre = os.path.join(dossier, fichier)
         with open(fichier_entre, "r") as file:
 
@@ -153,22 +156,23 @@ def idf_score(dossier):
             # Mettre à jour la fréquence des mots dans les documents
             words_in_document = content.split()
             for words in words_in_document:
-                if words in dico_frequence:
+                if words in dico_frequence and words not in present:
                     dico_frequence[words] += 1
                 else:
                     dico_frequence[words] = 1
-            total_documents+=1
+                present.append(words)
 
 
     # Calculer le score IDF pour chaque mot
     idf_scores = {}
     for word, frequency in dico_frequence.items():
-        idf_scores[word] = math.log((total_documents / frequency)+1)
+        idf_scores[word] = math.log10(total_documents / frequency)
     return idf_scores
 
 # Exemple d'utilisation de la fonction
 
-def association_tf_idf(tf_list,idf,dossier):
+
+def association_tf_idf(tf_list,idf):
     matrice_tf_idf = []
     i = 0
 
@@ -179,12 +183,13 @@ def association_tf_idf(tf_list,idf,dossier):
 
             # Ajouter la valeur TF-IDF du mot dans la matrice si ce mot est présent selon le document
             if words in tf_list[colonne]:
-                matrice_tf_idf[i].append(tf_list[colonne][words]*idf[words])
+                matrice_tf_idf[i].append(round(tf_list[colonne][words]*idf[words],2))
             # Ajouter la valeur 0 si ce n'est pas le cas
             else:
                 matrice_tf_idf[i].append(0.0)
         i+=1
     return matrice_tf_idf
+
 
 def score_tfidf_plus_faible(matrice_tf_idf,idf):
     liste_mots_moins_important = []
@@ -197,15 +202,6 @@ def score_tfidf_plus_faible(matrice_tf_idf,idf):
         if score_tfidf == 0 :
             liste_mots_moins_important.append(IDF[words])
 
-
-    # for i in range(len(dossier)):
-    #     tfidf_scores_document = matrice_tf_idf[i]
-
-    #     # Trouver l'indice du score TF-IDF le plus élevé
-    #     for tf_idf_indice in range(len(tfidf_scores_document)):
-    #         if tfidf_scores_document[tf_idf_indice] == 0:
-    #             liste_mots_moins_important.append(tf_list[tf_idf_indice].keys())
-    #             # Afficher le résultat
     return liste_mots_moins_important
             
 
@@ -351,6 +347,77 @@ def mots_dit_par_tous_les_presidents(matrice_tf_idf,tf_list):
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+def tokenisation(contenu):
+    contenu = convertir_majuscule_en_minuscules(contenu)
+    contenu = suppression_ponctuation(contenu)
+    contenu = contenu.split(" ")
+    return contenu
+
+def presence(contenu,idf):
+    dic = {}
+    for mots in contenu:
+        if mots != "":
+            dic[mots] = False
+
+            if mots in idf:
+                dic[mots] = True
+    print(dic)
+
+def tf(contenu):
+    tf_dic = {}
+    for element in contenu :
+        if element != "":
+            if element not in tf_dic:
+                tf_dic[element] = 1
+            else:
+                tf_dic[element] += 1
+    return tf_dic
+
+def tf_idf(tf_list,idf):
+    matrice_tf_idf = []
+    i = 0
+
+    # Créer la matrice TF-IDF
+    for i in range(len(tf_list)):
+        matrice_tf_idf.append([])
+        for words in idf:
+            # Ajouter la valeur TF-IDF du mot dans la matrice si ce mot est présent selon le document
+            if words in tf_list:
+                matrice_tf_idf[i].append(round(tf_list[words]*idf[words],2))
+            # Ajouter la valeur 0 si ce n'est pas le cas
+            else:
+                matrice_tf_idf[i].append(0.0)
+        i+=1
+    return matrice_tf_idf
+
+def calculer_similarite_cosinus(vecteur_question, matrice_tfidf):
+    m = []
+    for ligne in vecteur_question:
+        for j in range(len(ligne)):
+            m.append([])
+        break
+    i = 0
+    # Utilisez la fonction cosine_similarity pour calculer la similarité
+    for ligne in vecteur_question:
+        for j in range(len(ligne)):
+            m[j].append(vecteur_question[i][j])
+        i += 1
+    print(m)
+    similarites = cosine_similarity(vecteur_question, matrice_tfidf)
+    
+    # Retournez les valeurs de similarité
+    return similarites
+
+def trouver_document_similaire(similarites):
+    # Trouvez l'indice du document avec la plus haute similarité
+    indice_document_similaire = np.argmax(similarites)
+    
+    # Retournez l'indice du document
+    return indice_document_similaire
+
+
 # Utiliser les fonctions avec les données existantes
-directory = "speeches"
-files_names = list_of_files(directory, "txt")
+
+enter_directory = "../speeche/speeches"
+exit_directory = "../speeche/cleaned"
+# files_names = list_of_files(enter_directory, "txt")
