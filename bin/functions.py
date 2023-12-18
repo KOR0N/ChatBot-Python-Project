@@ -374,33 +374,3 @@ def calcule_similarite(A,B):
     norme_A = norme_vecteur(A)
     norme_B = norme_vecteur(B)
     similarite = produit_scalaire/(norme_A * norme_B)
-
-def produit_scalaire(vecteur_a, vecteur_b):
-    res_pro = 0
-    #vérifie si les deux vecteurs sont bien de même taille
-    if len(vecteur_a) != len(vecteur_b):
-        print("Le produit scalaire est impossible!")
-        return False
-    #parcours de la liste pour pouvoir multiplier et faire la somme de tous les éléments
-    for i in range(len(vecteur_a)):
-        res_pro += vecteur_a[i] * vecteur_b[i]
-    return res_pro
-
-def calcul_norme(A):
-    # Initialiser la somme des carrés
-    somme_carree = 0
-    # Parcourir les éléments du vecteur
-    for element in A:
-        # Calculer le carré de l'élément courant et l'ajouter à la somme des carrés
-        somme_carree += element ** 2
-    # Calculer la racine carrée de la somme des carrés
-    norme = math.sqrt(somme_carree)
-    return norme
-
-def calcul_similarité(A,B):
-    #Eviter une division par 0
-    if calcul_norme(A)==0 or calcul_norme(B)==0:
-        return 0
-    #Calcul de similarité
-    similarite = produit_scalaire(A,B)/(calcul_norme(A)*calcul_norme(B))
-    return similarite
