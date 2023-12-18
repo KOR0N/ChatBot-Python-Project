@@ -1,8 +1,10 @@
 import os
 import math
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 
+# Utiliser les fonctions avec les données existantes
+
+enter_directory = "../speeche/speeches"
+exit_directory = "../speeche/cleaned"
 
 """"""""""""""""""""""""""""" Fonctions enfants """""""""""""""""""""""""""""""""""
 
@@ -29,7 +31,7 @@ def suppression_ponctuation(contenu):
             new_contenu += " "
 
         # Faire une sélection de tous les caractere devant être remplacé par un espace 
-        elif  caractere in replace_to_nothing:
+        elif  caractere in replace_to_nothing or caractere == '"':
             new_contenu += ""
 
         # Les autres sont ajoutés au nouveau contenu
@@ -37,6 +39,16 @@ def suppression_ponctuation(contenu):
             new_contenu += caractere
 
     return new_contenu
+
+def tf(content):
+    tf_dic = {}
+    for element in content:
+        if element != "":
+            if element not in tf_dic:
+                tf_dic[element] = 1
+            else:
+                tf_dic[element] += 1
+    return tf_dic
 
 """"""""""""""""""""""""""""" Fonctions parents """""""""""""""""""""""""""""""""""
 
@@ -89,7 +101,7 @@ def presidents_name_display(presidents_name):
         print(i)
 
 
-def suppression_ponctuation_fichier(dossier):
+def cleaning_files(dossier):
     # Parcourir chaque fichier dans le dossier d'entré
     for fichier in os.listdir(dossier):
         fichier_entree = os.path.join(dossier, fichier)
@@ -103,65 +115,21 @@ def suppression_ponctuation_fichier(dossier):
             with open(fichier_entree, 'w') as file:
                 file.write(contenu)
 
-#convertir_majuscule_en_minuscules("speeches","cleaned")
-#suppression_ponctuation("cleaned")
-
-
-def tf_score(dossier): 
-    tf = []
-
-    for filename in os.listdir(dossier):
-        fichier_entre = os.path.join(dossier, filename)
-        with open(fichier_entre, "r") as file:
-
-            # Lire le contenu du fichier
-            content = file.read()
-
-            # Créer le dictionnaire pour le nombre d'occurence de chaque mots 
-            dico_occurrence = {} 
-
-            # Séparer les mots de la chaîne de caractere en une liste 
-            content = content.split() 
-
-            # Parcourir les mots de la liste string 
-            for word in content : 
-
-                # Ajouter le mot au dictionnaire si il n'existe pas 
-                if word not in dico_occurrence: 
-                    dico_occurrence[word] = 0 
-
-                # Incrementer 1 pour chaque mot 
-                dico_occurrence[word] += 1 
-
-            tf.append(dico_occurrence)
-
-    return tf 
-
 
 def idf_score(dossier):
-
     # Dictionnaire pour stocker le nombre de documents contenant chaque mot
     dico_frequence = {}
     total_documents = 0
-    # Parcourir tous les fichiers dans le répertoire du corpus
     for fichier in os.listdir(dossier):
-        present = []
-        total_documents+=1
         fichier_entre = os.path.join(dossier, fichier)
-        with open(fichier_entre, "r") as file:
-
-            # Lire le contenu du fichier
-            content = file.read()
-
-            # Mettre à jour la fréquence des mots dans les documents
-            words_in_document = content.split()
-            for words in words_in_document:
-                if words in dico_frequence and words not in present:
-                    dico_frequence[words] += 1
-                else:
-                    dico_frequence[words] = 1
-                present.append(words)
-
+        with open(fichier_entre,"r") as f:
+            # Regrouper chaque mot dans une liste en supprimant les doublons
+            content = set(f.read().split())
+            for words in content:
+                if words not in dico_frequence:
+                    dico_frequence[words] = 0
+                dico_frequence[words] += 1
+        total_documents += 1
 
     # Calculer le score IDF pour chaque mot
     idf_scores = {}
@@ -169,24 +137,15 @@ def idf_score(dossier):
         idf_scores[word] = math.log10(total_documents / frequency)
     return idf_scores
 
-# Exemple d'utilisation de la fonction
-
 
 def association_tf_idf(tf_list,idf):
     matrice_tf_idf = []
     i = 0
-
     # Créer la matrice TF-IDF
     for words in idf:
         matrice_tf_idf.append([])
         for colonne in range(len(tf_list)):
-
-            # Ajouter la valeur TF-IDF du mot dans la matrice si ce mot est présent selon le document
-            if words in tf_list[colonne]:
-                matrice_tf_idf[i].append(round(tf_list[colonne][words]*idf[words],2))
-            # Ajouter la valeur 0 si ce n'est pas le cas
-            else:
-                matrice_tf_idf[i].append(0.0)
+            matrice_tf_idf[i].append(round(tf_list[colonne][words]*idf[words] if words in tf_list[colonne] else 0.0, 2))
         i+=1
     return matrice_tf_idf
 
@@ -199,11 +158,11 @@ def score_tfidf_plus_faible(matrice_tf_idf,idf):
         score_tfidf = 0
         for dossiers in range(len(matrice_tf_idf[words])):
             score_tfidf += matrice_tf_idf[words][dossiers]
-        if score_tfidf == 0 :
+        if score_tfidf == 0.0 :
             liste_mots_moins_important.append(IDF[words])
 
     return liste_mots_moins_important
-            
+
 
 def mots_max(matrice_tf_idf, idf):
     score_max = 0
@@ -243,8 +202,7 @@ def mots_max(matrice_tf_idf, idf):
         print(mot)
 
 
-
-def mots_plus_répétés_par_président(president_name,tf_list):
+def mots_plus_répétés_par_président(president_name,tf_list,files_names):
 
     #Récuperer les noms des présidents
     noms = recup_nom(files_names)
@@ -267,7 +225,7 @@ def mots_plus_répétés_par_président(president_name,tf_list):
     print("Le(s) mot(s) le(s) plus répété(s) par",president_name, "est (sont) :",list_mot_max)
 
 
-def mots_dit_par_présidents(mot,tf_list):
+def mots_dit_par_présidents(mot,tf_list,files_names):
 
     # Récuperer les noms des présidents
     noms = recup_nom(files_names)
@@ -295,14 +253,17 @@ def mots_dit_par_présidents(mot,tf_list):
             if  valeur_max < valeur:
                 valeur_max = valeur
                 president_max = cle
-        print(f"Donc le président ayant dit le plus de fois le mot '{mot}' est le président {president_max}")
+        for cle, valeur in mot_dit_nombre_de_fois.items():
+            if valeur_max == valeur and cle not in president_max:
+                president_max += ", " + cle
+        print(f"Donc le(s) président(s) ayant dit le plus de fois le mot '{mot}' est (sont) le(s) président(s) {president_max}.")
 
     # Si aucun président à prononcé ce mot
     else:
         print("Aucun des présidents ont prononcés ce mot selon les dossiers.")
 
 
-def premier_president_dire_theme(theme,tf_list):
+def premier_president_dire_theme(theme,tf_list,files_names):
 
     # Récuperer les noms des présidents
     noms = recup_nom(files_names)
@@ -325,27 +286,22 @@ def premier_president_dire_theme(theme,tf_list):
         print("Aucun n'a évoqué ce sujet.")
 
 
-""""""""""""""" Fonction non fonctionelle """""""""""""""""""""
-def mots_dit_par_tous_les_presidents(matrice_tf_idf,tf_list):
+def mots_dit_par_tous_les_presidents(idf,tf_list,non_important):
     mot_present = []
-    mot_est_dit_par_tous = True
-    for words in range(len(matrice_tf_idf)):
-        for speeches in range(len(matrice_tf_idf[words])):
-            if matrice_tf_idf[words][speeches] != 0:
-                mot_est_dit_par_tous = False
-        if mot_est_dit_par_tous == True:
-            mot_present.append(tf_list[speeches].keys())
-            # for cle,valeur in idf.items():
-            #     if valeur == matrice_tf_idf[words][speeches]:
-            #         mot_present.append(cle)
-        mot_est_dit_par_tous = True
+    for word in idf:
+        present = True
+        for doc in tf_list :
+            if word not in doc:
+                present = False
+        if present == True and word not in non_important:
+            mot_present.append(word)
 
     if len(mot_present) > 0:
         print(f"Le(s) mot(s) dit(s) par tous les présidents est (sont) : {mot_present}")
     else:
         print("Les présidents n'ont dis aucun mots important en commun.")
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 def tokenisation(contenu):
     contenu = convertir_majuscule_en_minuscules(contenu)
@@ -353,7 +309,7 @@ def tokenisation(contenu):
     contenu = contenu.split(" ")
     return contenu
 
-def presence(contenu,idf):
+def presence_mot(contenu,idf):
     dic = {}
     for mots in contenu:
         if mots != "":
@@ -363,15 +319,6 @@ def presence(contenu,idf):
                 dic[mots] = True
     print(dic)
 
-def tf(contenu):
-    tf_dic = {}
-    for element in contenu :
-        if element != "":
-            if element not in tf_dic:
-                tf_dic[element] = 1
-            else:
-                tf_dic[element] += 1
-    return tf_dic
 
 def tf_idf(tf_list,idf):
     matrice_tf_idf = []
@@ -381,43 +328,79 @@ def tf_idf(tf_list,idf):
     for i in range(len(tf_list)):
         matrice_tf_idf.append([])
         for words in idf:
-            # Ajouter la valeur TF-IDF du mot dans la matrice si ce mot est présent selon le document
-            if words in tf_list:
-                matrice_tf_idf[i].append(round(tf_list[words]*idf[words],2))
-            # Ajouter la valeur 0 si ce n'est pas le cas
-            else:
-                matrice_tf_idf[i].append(0.0)
+            # Ajouter la valeur TF-IDF du mot dans la matrice si ce mot est présent selon le document sinon 0
+            matrice_tf_idf[i].append(round(tf_list[words]*idf[words] if words in tf_list else 0.0, 2))
         i+=1
     return matrice_tf_idf
 
-def calculer_similarite_cosinus(vecteur_question, matrice_tfidf):
+def inverse_matrice(matrice):
     m = []
-    for ligne in vecteur_question:
-        for j in range(len(ligne)):
-            m.append([])
-        break
+    ligne = matrice[0]
+    for j in range(len(ligne)):
+        m.append([])
     i = 0
     # Utilisez la fonction cosine_similarity pour calculer la similarité
-    for ligne in vecteur_question:
+    for ligne in matrice:
         for j in range(len(ligne)):
-            m[j].append(vecteur_question[i][j])
+            m[j].append(matrice[i][j])
         i += 1
-    print(m)
-    similarites = cosine_similarity(vecteur_question, matrice_tfidf)
-    
-    # Retournez les valeurs de similarité
-    return similarites
+    return m
 
-def trouver_document_similaire(similarites):
-    # Trouvez l'indice du document avec la plus haute similarité
-    indice_document_similaire = np.argmax(similarites)
-    
-    # Retournez l'indice du document
-    return indice_document_similaire
+def calculer_similarite_cosinus(vecteur_question, matrice_tfidf):
+    produit_scalaire(vecteur_question,matrice_tfidf)
 
+def norme_vecteur(vecteur):
+    # si marche pas essayer avec vecteur = une liste
+    norme = 0
+    for score in vecteur.values():
+        norme += score**2
+    return math.sqrt(norme)
 
-# Utiliser les fonctions avec les données existantes
+def produit_scalaire(V1,V2):
+    res_pro = 0
+    #vérifie si les deux vecteurs sont bien de même taille
+    if len(V1) != len(V2):
+        print("Le produit scalaire est impossible!")
+        return False
+    #parcours de la liste pour pouvoir multiplier et faire la somme de tous les éléments
+    l = V1[0]
+    for ligne in range(len(V1)) :
+        for i in range(len(l)):
+            res_pro += V1[ligne][i] * V2[ligne][i]
+    return res_pro
 
-enter_directory = "../speeche/speeches"
-exit_directory = "../speeche/cleaned"
-# files_names = list_of_files(enter_directory, "txt")
+def calcule_similarite(A,B):
+    produit_scalaire = produit_scalaire(A,B)
+    norme_A = norme_vecteur(A)
+    norme_B = norme_vecteur(B)
+    similarite = produit_scalaire/(norme_A * norme_B)
+
+def produit_scalaire(vecteur_a, vecteur_b):
+    res_pro = 0
+    #vérifie si les deux vecteurs sont bien de même taille
+    if len(vecteur_a) != len(vecteur_b):
+        print("Le produit scalaire est impossible!")
+        return False
+    #parcours de la liste pour pouvoir multiplier et faire la somme de tous les éléments
+    for i in range(len(vecteur_a)):
+        res_pro += vecteur_a[i] * vecteur_b[i]
+    return res_pro
+
+def calcul_norme(A):
+    # Initialiser la somme des carrés
+    somme_carree = 0
+    # Parcourir les éléments du vecteur
+    for element in A:
+        # Calculer le carré de l'élément courant et l'ajouter à la somme des carrés
+        somme_carree += element ** 2
+    # Calculer la racine carrée de la somme des carrés
+    norme = math.sqrt(somme_carree)
+    return norme
+
+def calcul_similarité(A,B):
+    #Eviter une division par 0
+    if calcul_norme(A)==0 or calcul_norme(B)==0:
+        return 0
+    #Calcul de similarité
+    similarite = produit_scalaire(A,B)/(calcul_norme(A)*calcul_norme(B))
+    return similarite
