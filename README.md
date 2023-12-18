@@ -60,5 +60,6 @@ https://github.com/KOR0N/Projet-Python
 # Précision sur l'organisation :
 
 Mathhis Go : impossibilité d'installer et d'utuliser le logiciel Pycharm, il a donc été difficile de travailler en groupe à distencce cependatant nosu avoins trouver le moyen de travailler sur le même pc.
+
 Alexandre LGD : On a travaillé sur l'ordinateur d'Alexandre Dauvel, car mon PyCharm ne voulait pas installer la version de Python adaptée.
 
