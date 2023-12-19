@@ -1,3 +1,14 @@
+#########################################################################################################
+##################################### CHATBOT PROJET PYTHON #############################################
+#########################################################################################################
+# Alexandre LE GALLIARD
+# Alexandre DAUVEL
+
+# Ce fichier comporte toutes les fonctiones nécessaires pour le ChatBot et donc du fichier main.py
+
+#-------------------------------------------------------------------------------------------------------#
+
+
 import os
 import math
 
@@ -9,7 +20,8 @@ exit_directory = "../speeche/cleaned"
 """"""""""""""""""""""""""""" Fonctions enfants """""""""""""""""""""""""""""""""""
 
 def convertir_majuscule_en_minuscules(contenu):
-    print(contenu)
+    """ Convertir le contenu en parametre en minuscule """
+
     contenu_minuscule = ""
     # Convertir en minuscules 
     for caractere in contenu :
@@ -21,17 +33,19 @@ def convertir_majuscule_en_minuscules(contenu):
     return contenu_minuscule
 
 def suppression_ponctuation(contenu):
+    """ Supprimer la poncuation du contenu en parametre """
+
     replace_to_nothing = "().,;!?:"
     replace_to_scape = "'-"
     new_contenu = ""
 
     for caractere in contenu :
 
-        # Faire une sélection de tous les caractere devant être supprimé 
+        # Faire une sélection de tous les caractères devant être supprimé
         if caractere == "\n" or caractere in replace_to_scape:
             new_contenu += " "
 
-        # Faire une sélection de tous les caractere devant être remplacé par un espace 
+        # Faire une sélection de tous les caractères devant être remplacé par un espace 
         elif  caractere in replace_to_nothing or caractere == '"':
             new_contenu += ""
 
@@ -42,9 +56,12 @@ def suppression_ponctuation(contenu):
     return new_contenu
 
 def tf(content):
+    """ Calculer le score TF des éléments du contenu en paramètre"""
     tf_dic = {}
     for element in content:
         if element != "":
+
+            # Ajouter les mots aux dictionnaire si ce n'est pas le cas et calculer leur fréquence
             if element not in tf_dic:
                 tf_dic[element] = 1
             else:
@@ -52,17 +69,17 @@ def tf(content):
     return tf_dic
 
 def list_of_files(directory, extension):
+    """ Permet d'extraire le nom de chaque fichier d'un dossier """
     files_names = []
     for filename in os.listdir(directory):
         if filename.endswith(extension):
             files_names.append(filename)
     return files_names
 
-
 """"""""""""""""""""""""""""" Fonctions parents """""""""""""""""""""""""""""""""""
 
-
 def recup_nom(files_names):
+    """ Permet de récupérer les noms de présidents présents dans les noms de ficiers"""
     presidents_name = []
 
     # Parcourir la liste des nominations des discours des présidents
@@ -79,6 +96,7 @@ def recup_nom(files_names):
 
 
 def name_association(presidents_name):
+    """ Associer à chaque nom de président d'une liste entré en paramètre leur prénom """
     for names in range(len(presidents_name)):
         # Attribuer pour chaque nom de président le prénom associé
         match presidents_name[names]:
@@ -98,12 +116,15 @@ def name_association(presidents_name):
 
 
 def presidents_name_display(presidents_name):
+    """ Ecrire la liste des présidents avec leur nom et prénom """
     print("Les présidents sont :")
+
     for i in set(presidents_name):
         print(i)
 
 
 def cleaning_files(dossier):
+    """ Permet de créer de nouveaux fichier en supprimant les ponctuations et en transformant les majuscules en minuscules de chaque fichiers du dossier donné """
     # Parcourir chaque fichier dans le dossier d'entré
     for fichier in os.listdir(dossier):
         fichier_entree = os.path.join(dossier, fichier)
@@ -119,6 +140,7 @@ def cleaning_files(dossier):
 
 
 def idf_score(dossier):
+    """ Calcule le score IDF des tous les mots du corpus donné"""
     # Dictionnaire pour stocker le nombre de documents contenant chaque mot
     dico_frequence = {}
     total_documents = 0
@@ -141,6 +163,7 @@ def idf_score(dossier):
 
 
 def association_tf_idf(tf_list,idf):
+    """ Créer une matrice de tous les mots dans le corpus par rapport à leur présence dans chacun d'entre eux """
     matrice_tf_idf = []
     i = 0
     # Créer la matrice TF-IDF
@@ -153,13 +176,18 @@ def association_tf_idf(tf_list,idf):
 
 
 def score_tfidf_plus_faible(matrice_tf_idf,idf):
+    """ Calcul les mots ayant le score TF-IDF le plus faible """
     liste_mots_moins_important = []
 
     for words in range(len(matrice_tf_idf)):
         IDF = list(idf.keys())
         score_tfidf = 0
+
+        # Calculer la somme des scores TF-IDF de chaque mots dans chaque documents
         for dossiers in range(len(matrice_tf_idf[words])):
             score_tfidf += matrice_tf_idf[words][dossiers]
+        
+        # Ajouter le mot à la liste si sa somme vaut 0
         if score_tfidf == 0.0 :
             liste_mots_moins_important.append(IDF[words])
 
@@ -167,6 +195,7 @@ def score_tfidf_plus_faible(matrice_tf_idf,idf):
 
 
 def mots_max(matrice_tf_idf, idf):
+    """ Calcule le mot avec le score TF-IDF le plus élevé """
     score_max = 0
     cle_score_max = ""
     liste_mots_max = []
@@ -205,7 +234,7 @@ def mots_max(matrice_tf_idf, idf):
 
 
 def mots_plus_répétés_par_président(president_name,tf_list,files_names):
-
+    """ Calcule le nombre de fois qu'un président donné prononce un mot donné """
     #Récuperer les noms des présidents
     noms = recup_nom(files_names)
     list_mot_max = []
@@ -228,7 +257,7 @@ def mots_plus_répétés_par_président(president_name,tf_list,files_names):
 
 
 def mots_dit_par_présidents(mot,tf_list,files_names):
-
+    """ Calcule le nombre de fois qu'un président d'une liste donné à prononcé un mot donné et celui ayant dit le plus de fois"""
     # Récuperer les noms des présidents
     noms = recup_nom(files_names)
 
@@ -266,7 +295,7 @@ def mots_dit_par_présidents(mot,tf_list,files_names):
 
 
 def premier_president_dire_theme(theme,tf_list,files_names):
-
+    """ Caclule le premier président dans une liste donné d'un mot donné """
     # Récuperer les noms des présidents
     noms = recup_nom(files_names)
 
@@ -289,13 +318,14 @@ def premier_president_dire_theme(theme,tf_list,files_names):
 
 
 def mots_dit_par_tous_les_presidents(idf,tf_list,non_important):
-    """"""
+    """ Calcule les mots dits par au moins chauqe président sans compter les mots dits "non-important" """
     mot_present = []
     for word in idf:
         present = True
         for doc in tf_list :
             if word not in doc:
                 present = False
+        # Aujouter le mot si il est dit dans chaque corpus et qu'il n'est pas dans les mots non-importants
         if present == True and word not in non_important:
             mot_present.append(word)
     # Verifier si au moins un mot a ete dit par
@@ -339,8 +369,8 @@ def inverse_matrice(matrice):
         i += 1
     return m
 
-def calculate_tfidf(tf_list,idf,dossier):
-    """Calculer et retourner la matrice TF-IDF en fonction du TF de la question et de l'IDF de tous les mots dans le corpus"""
+def tf_idf_question(tf_list,idf,dossier):
+    """ Calculer et retourner la matrice TF-IDF en fonction du TF de la question et de l'IDF de tous les mots dans le corpus """
     matrice_tf_idf = []
     i = 0
     # Créer la matrice TF-IDF
@@ -388,12 +418,15 @@ def similarite(A,B):
             final.append(0)
         else:
             final.append((scal)/(norme_a*norme_b))
+
+    return final
+    
+def plus_pertinent(pertinence):
+
     
     # Calculer le fichier avec la plus grande similarite
-    if max(final) == 0:
+    if max(pertinence) == 0:
         return("Aucun document correspond à cette question")
-    for i in range(len(final)):
-        if final[i] == max(final):
+    for i in range(len(pertinence)):
+        if pertinence[i] == max(pertinence):
             return i
-        
-
