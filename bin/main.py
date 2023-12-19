@@ -65,9 +65,11 @@ if __name__ == "__main__":
     else:
         question = tokenisation(input("\nEntrez une question pour le ChatBot : "))
         tf_q = tf(question)
+        print(tf_q)
         m = tf_idf_question(tf_q, idf,files_names)
         matrice = inverse_matrice(matrice_tf_idf)
         final = similarite(m,matrice)
+        print(final)
         doc_plus_pertinent = plus_pertinent(final)
 
-        print(f'Le document le plus similaire à cette question est le document : "{files_names[doc_plus_pertinent]}"')
+        print(f'Le document le plus similaire à cette question est le document : "{files_names[doc_plus_pertinent]}"' if doc_plus_pertinent is not False else 'Aucun document correspond à cette question')
