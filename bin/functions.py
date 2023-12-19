@@ -9,6 +9,7 @@ exit_directory = "../speeche/cleaned"
 """"""""""""""""""""""""""""" Fonctions enfants """""""""""""""""""""""""""""""""""
 
 def convertir_majuscule_en_minuscules(contenu):
+    print(contenu)
     contenu_minuscule = ""
     # Convertir en minuscules 
     for caractere in contenu :
@@ -50,14 +51,15 @@ def tf(content):
                 tf_dic[element] += 1
     return tf_dic
 
-""""""""""""""""""""""""""""" Fonctions parents """""""""""""""""""""""""""""""""""
-
 def list_of_files(directory, extension):
     files_names = []
     for filename in os.listdir(directory):
         if filename.endswith(extension):
             files_names.append(filename)
     return files_names
+
+
+""""""""""""""""""""""""""""" Fonctions parents """""""""""""""""""""""""""""""""""
 
 
 def recup_nom(files_names):
@@ -287,6 +289,7 @@ def premier_president_dire_theme(theme,tf_list,files_names):
 
 
 def mots_dit_par_tous_les_presidents(idf,tf_list,non_important):
+    """"""
     mot_present = []
     for word in idf:
         present = True
@@ -295,21 +298,23 @@ def mots_dit_par_tous_les_presidents(idf,tf_list,non_important):
                 present = False
         if present == True and word not in non_important:
             mot_present.append(word)
-
+    # Verifier si au moins un mot a ete dit par
     if len(mot_present) > 0:
         print(f"Le(s) mot(s) dit(s) par tous les présidents est (sont) : {mot_present}")
     else:
         print("Les présidents n'ont dis aucun mots important en commun.")
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""" Partie 2 """""""""""""""""""""""""""""""""""""""
 
 def tokenisation(contenu):
+    """ Permet de convertir un contenu en parametre en liste de mots mnuscules et sans les ponctuations """
     contenu = convertir_majuscule_en_minuscules(contenu)
     contenu = suppression_ponctuation(contenu)
     contenu = contenu.split(" ")
     return contenu
 
 def presence_mot(contenu,idf):
+    """ AFficher les mots présents et absents dans le dictionnaire IDF """
     dic = {}
     for mots in contenu:
         if mots != "":
@@ -317,60 +322,78 @@ def presence_mot(contenu,idf):
 
             if mots in idf:
                 dic[mots] = True
-    print(dic)
-
-
-def tf_idf(tf_list,idf):
-    matrice_tf_idf = []
-    i = 0
-
-    # Créer la matrice TF-IDF
-    for i in range(len(tf_list)):
-        matrice_tf_idf.append([])
-        for words in idf:
-            # Ajouter la valeur TF-IDF du mot dans la matrice si ce mot est présent selon le document sinon 0
-            matrice_tf_idf[i].append(round(tf_list[words]*idf[words] if words in tf_list else 0.0, 2))
-        i+=1
-    return matrice_tf_idf
+    return dic
 
 def inverse_matrice(matrice):
+    """ Inverser la matrice donné en parametre """
     m = []
     ligne = matrice[0]
     for j in range(len(ligne)):
         m.append([])
     i = 0
-    # Utilisez la fonction cosine_similarity pour calculer la similarité
+
+    # Ajouter les valeurs des lignes dans les colonnes du même rang
     for ligne in matrice:
         for j in range(len(ligne)):
             m[j].append(matrice[i][j])
         i += 1
     return m
 
-def calculer_similarite_cosinus(vecteur_question, matrice_tfidf):
-    produit_scalaire(vecteur_question,matrice_tfidf)
+def calculate_tfidf(tf_list,idf,dossier):
+    """Calculer et retourner la matrice TF-IDF en fonction du TF de la question et de l'IDF de tous les mots dans le corpus"""
+    matrice_tf_idf = []
+    i = 0
+    # Créer la matrice TF-IDF
+    for i in range(len(dossier)):
+        matrice_tf_idf.append([])
+        for words in idf:
+            # Ajouter la valeur TF-IDF du mot de la question dans la matrice si ce mot est présent selon le document sinon 0
+            matrice_tf_idf[i].append(round(tf_list[words]*idf[words] if words in tf_list else 0.0, 2))
+        i+=1
+    return matrice_tf_idf
 
-def norme_vecteur(vecteur):
-    # si marche pas essayer avec vecteur = une liste
-    norme = 0
-    for score in vecteur.values():
-        norme += score**2
-    return math.sqrt(norme)
+def scalaire(A,B):
+    """Fonction qui prend en valeur A et B deux vecteur permet de calculer et retourner A . B = somme de 1 à m avec i=1 pour Ai * Bi"""
 
-def produit_scalaire(V1,V2):
-    res_pro = 0
-    #vérifie si les deux vecteurs sont bien de même taille
-    if len(V1) != len(V2):
-        print("Le produit scalaire est impossible!")
-        return False
-    #parcours de la liste pour pouvoir multiplier et faire la somme de tous les éléments
-    l = V1[0]
-    for ligne in range(len(V1)) :
-        for i in range(len(l)):
-            res_pro += V1[ligne][i] * V2[ligne][i]
-    return res_pro
+    # Vérifier si les deux vecteurs ont la même dimension
+    if len(A) != len(B):
+        return("Erreur ! A et B sont de dimension différentes. Merci de réessayer en entrant des vecteurs de même dimension")
 
-def calcule_similarite(A,B):
-    produit_scalaire = produit_scalaire(A,B)
-    norme_A = norme_vecteur(A)
-    norme_B = norme_vecteur(B)
-    similarite = produit_scalaire/(norme_A * norme_B)
+    # Calculer la somme des produits des éléments correspondants des deux vecteurs 
+    somme_produits = 0
+    for i in range(len(A)): # On peut prendre A puisqu'ils sont de même dimension 
+        somme_produits += A[i] * B[i]
+
+    return somme_produits # On se retrouve donc bien avec tout ce qu'on voulait notre expression du produit scalaire
+
+def norme(A):
+    """Fonction qui prend en paramètre un vecteur A et calcule et retourne la racine carrée de la somme des carrés de ses composantes"""
+    # Calculer la somme des carrés des éléments du vecteur
+    somme_carres = 0
+    for element in A:
+        somme_carres += element**2
+
+    # Retourner la racine carrée de la somme des carrés
+    return math.sqrt(somme_carres)
+
+def similarite(A,B):
+    """Prend en parametre deux matrice pour calculer leurs vetceurs et retourner le fichier avec la plus grande similarite"""
+    final = []
+    # Calculer de la similarite pour chaque fichiers
+    for i in range(len(A)):
+        scal=scalaire(A[i],B[i])
+        norme_a=norme(A[i])
+        norme_b=norme(B[i])
+        if norme_a==0 or norme_b==0:
+            final.append(0)
+        else:
+            final.append((scal)/(norme_a*norme_b))
+    
+    # Calculer le fichier avec la plus grande similarite
+    if max(final) == 0:
+        return("Aucun document correspond à cette question")
+    for i in range(len(final)):
+        if final[i] == max(final):
+            return i
+        
+
