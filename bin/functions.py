@@ -422,7 +422,7 @@ def similarite(A,B):
     return final
     
 def plus_pertinent(pertinence):
-
+    """ Calcule le document le plus pertinent selon une similarité calculé """
     
     # Calculer le fichier avec la plus grande similarite
     if max(pertinence) == 0:
