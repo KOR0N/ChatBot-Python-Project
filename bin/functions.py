@@ -238,12 +238,11 @@ def mots_plus_répétés_par_président(president_name,tf_list,files_names):
     #Récuperer les noms des présidents
     noms = recup_nom(files_names)
     list_mot_max = []
-
+    mots_max = ""
+    valeur_mots_max = 0
     #Trouver les mots les plus répétés par présidents
     for presidents_names in range(len(noms)) :
         if noms[presidents_names] == president_name :
-            valeur_mots_max = 0
-            mots_max = ""
             for words in tf_list[presidents_names]:
                 if tf_list[presidents_names][words] > valeur_mots_max:
                     mots_max = words
@@ -426,7 +425,8 @@ def plus_pertinent(pertinence):
     
     # Calculer le fichier avec la plus grande similarite
     if max(pertinence) == 0:
-        return("Aucun document correspond à cette question")
+        return False
     for i in range(len(pertinence)):
         if pertinence[i] == max(pertinence):
             return i
+
