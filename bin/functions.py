@@ -336,20 +336,20 @@ def mots_dit_par_tous_les_presidents(idf,tf_list,non_important):
 """"""""""""""""""""""""""""""""" Partie 2 """""""""""""""""""""""""""""""""""""""
 
 def tokenisation(contenu):
-    """ Permet de convertir un contenu en parametre en liste de mots mnuscules et sans les ponctuations """
+    """ Permet de convertir un contenu en parametre en liste de mots minuscules et sans les ponctuations """
     contenu = convertir_majuscule_en_minuscules(contenu)
     contenu = suppression_ponctuation(contenu)
     contenu = contenu.split(" ")
     return contenu
 
 def presence_mot(contenu,idf):
-    """ AFficher les mots présents et absents dans le dictionnaire IDF """
+    """ Afficher les mots présents et absents dans le dictionnaire IDF """
     dic = {}
     for mots in contenu:
         if mots != "":
-            dic[mots] = False
+            dic[mots] = False 
 
-            if mots in idf:
+            if mots in idf: # Ajoute le mot au dictionnaire comme présent si il est présent de idf
                 dic[mots] = True
     return dic
 
@@ -368,17 +368,14 @@ def inverse_matrice(matrice):
         i += 1
     return m
 
-def tf_idf_question(tf_list,idf,dossier):
+def tf_idf_question(question,idf):
     """ Calculer et retourner la matrice TF-IDF en fonction du TF de la question et de l'IDF de tous les mots dans le corpus """
     matrice_tf_idf = []
-    i = 0
+    TF = tf(question)
+
     # Créer la matrice TF-IDF
-    for i in range(len(dossier)):
-        matrice_tf_idf.append([])
-        for words in idf:
-            # Ajouter la valeur TF-IDF du mot de la question dans la matrice si ce mot est présent selon le document sinon 0
-            matrice_tf_idf[i].append(round(tf_list[words]*idf[words] if words in tf_list else 0.0, 2))
-        i+=1
+    for words in idf:
+        matrice_tf_idf.append(round(TF[words]*idf[words] if words in TF else 0.0, 2))
     return matrice_tf_idf
 
 def scalaire(A,B):
@@ -390,10 +387,10 @@ def scalaire(A,B):
 
     # Calculer la somme des produits des éléments correspondants des deux vecteurs 
     somme_produits = 0
-    for i in range(len(A)): # On peut prendre A puisqu'ils sont de même dimension 
+    for i in range(len(A)): # On prend A puisqu'ils sont de même dimension 
         somme_produits += A[i] * B[i]
 
-    return somme_produits # On se retrouve donc bien avec tout ce qu'on voulait notre expression du produit scalaire
+    return somme_produits 
 
 def norme(A):
     """Fonction qui prend en paramètre un vecteur A et calcule et retourne la racine carrée de la somme des carrés de ses composantes"""
@@ -402,16 +399,15 @@ def norme(A):
     for element in A:
         somme_carres += element**2
 
-    # Retourner la racine carrée de la somme des carrés
-    return math.sqrt(somme_carres)
+    return math.sqrt(somme_carres) # Retourner la racine carrée de la somme des carrés
 
 def similarite(A,B):
     """Prend en parametre deux matrice pour calculer leurs vetceurs et retourner le fichier avec la plus grande similarite"""
     final = []
     # Calculer de la similarite pour chaque fichiers
-    for i in range(len(A)):
-        scal=scalaire(A[i],B[i])
-        norme_a=norme(A[i])
+    for i in range(len(B)):
+        scal=scalaire(A,B[i])
+        norme_a=norme(A)
         norme_b=norme(B[i])
         if norme_a==0 or norme_b==0:
             final.append(0)
@@ -429,4 +425,36 @@ def plus_pertinent(pertinence):
     for i in range(len(pertinence)):
         if pertinence[i] == max(pertinence):
             return i
+
+def mot_plus_haut(tf_idf,idf):
+    """ Renvoie le mot de la question avec le score TF-IDF le plus élevé"""
+    indice, valeur = 0, 0
+    for i in range(len(tf_idf)):
+        if tf_idf[i] > valeur: # Regarde la valeur max dans le vecteur TF-IDF
+            indice = i
+            valeur = tf_idf[i]
+    cles = list(idf.keys()) # Enregistre sous une liste toutes les clés de IDF
+    return cles[indice]
+        
+def generation_reponse(question,idf,matrice_tf_idf,dossier):
+    """Permet de générer une réponse correspondant à la première phrase dont le mot avec la valeur TF-IDF est le plus élevé"""
+    m = tf_idf_question(question, idf)
+    final = similarite(m,matrice_tf_idf)
+    doc_plus_pertinent = plus_pertinent(final)
+    mot_important = mot_plus_haut(m,idf)
+    
+    # Ouvrir le fichier le plus pertinent
+    fichier = os.listdir(dossier)[doc_plus_pertinent]
+    fichier_entre = os.path.join(dossier, fichier)
+    with open(fichier_entre,"r") as f:
+        # Lire chaque phrase du fichier
+        contenue = f.read().split(".")
+        for i in range(len(contenue)):
+            if mot_important in contenue[i]:
+                return contenue[i]  # Retourner la phrase avec le mot le plus élevé
+    
+
+
+            
+
 
