@@ -455,6 +455,14 @@ def generation_reponse(question,idf,matrice_tf_idf,dossier):
             if mot_important in contenue[i]:
                 return doc_plus_pertinent,mot_important,contenue[i]  # Retourner les informations pour générer la phrase avec le mot le plus élevé
     
-
-
-            
+def affinage_reponse(phrase,question):
+    question = question.split(" ")
+    question_starters = {
+    "Comment": "Après analyse, ",
+    "Pourquoi": "Car, ",
+    "Peux-tu": "Oui, bien sûr!"
+    }
+    for cles,valeurs in question_starters.items():
+        if question[0] == cles:
+            phrase = valeurs + phrase
+    return phrase
