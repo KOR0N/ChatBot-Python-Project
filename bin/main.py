@@ -66,7 +66,8 @@ if __name__ == "__main__":
                 mots_dit_par_tous_les_presidents(idf,tf_list,non_important)
 
     else:
-        question = tokenisation(input("\nBienvenue sur notre ChatBot\nVeuillez entrez une question : "))
+        question = input("\nBienvenue sur notre ChatBot\nVeuillez entrez une question : ")
+        question_tok = tokenisation(question)
         matrice_tf_idf = inverse_matrice(matrice_tf_idf)
-        indice,mot_important,phrase = generation_reponse(question,idf,matrice_tf_idf,dossier_non_traite)
-        print(f'\nDocument le plus pertinent : {files_names[indice]}\nLe mot le plus important de la question : {mot_important}\nRéponse : {phrase}')
+        indice,mot_important,phrase = generation_reponse(question_tok,idf,matrice_tf_idf,dossier_non_traite)
+        print(f'\nDocument le plus pertinent : {files_names[indice]}\nLe mot le plus important de la question : {mot_important}\nRéponse : {affinage_reponse(phrase,question)}')
