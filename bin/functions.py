@@ -18,6 +18,13 @@ enter_directory = "../speeche/speeches"
 exit_directory = "../speeche/cleaned"
 
 """"""""""""""""""""""""""""" Fonctions enfants """""""""""""""""""""""""""""""""""
+def list_of_files(directory, extension):
+    """ Permet d'extraire le nom de chaque fichier d'un dossier """
+    files_names = []
+    for filename in os.listdir(directory):
+        if filename.endswith(extension):
+            files_names.append(filename)
+    return files_names
 
 def convertir_majuscule_en_minuscules(contenu):
     """ Convertir le contenu en parametre en minuscule """
@@ -31,6 +38,8 @@ def convertir_majuscule_en_minuscules(contenu):
         else:
             contenu_minuscule += caractere
     return contenu_minuscule
+
+# print(convertir_majuscule_en_minuscules("BonjOuR à TOuS"))
 
 def suppression_ponctuation(contenu):
     """ Supprimer la poncuation du contenu en parametre """
@@ -55,6 +64,8 @@ def suppression_ponctuation(contenu):
 
     return new_contenu
 
+# print(suppression_ponctuation("Elle-même ne savait plus, qu'a chaque fois il n'y avait plus à manger."))
+
 def tf(content):
     """ Calculer le score TF des éléments du contenu en paramètre"""
     tf_dic = {}
@@ -67,14 +78,6 @@ def tf(content):
             else:
                 tf_dic[element] += 1
     return tf_dic
-
-def list_of_files(directory, extension):
-    """ Permet d'extraire le nom de chaque fichier d'un dossier """
-    files_names = []
-    for filename in os.listdir(directory):
-        if filename.endswith(extension):
-            files_names.append(filename)
-    return files_names
 
 """"""""""""""""""""""""""""" Fonctions parents """""""""""""""""""""""""""""""""""
 
@@ -113,7 +116,6 @@ def name_association(presidents_name):
             case "Giscard dEstaing":
                 presidents_name[names] = "Valéri " + presidents_name[names]
     return presidents_name
-
 
 def presidents_name_display(presidents_name):
     """ Ecrire la liste des présidents avec leur nom et prénom """
@@ -163,7 +165,7 @@ def idf_score(dossier):
 
 
 def association_tf_idf(tf_list,idf):
-    """ Créer une matrice de tous les mots dans le corpus par rapport à leur présence dans chacun d'entre eux """
+    """ Créé une matrice de tous les mots dans le corpus par rapport à leur présence dans chacun d'entre eux """
     matrice_tf_idf = []
     i = 0
     # Créer la matrice TF-IDF
@@ -233,7 +235,7 @@ def mots_max(matrice_tf_idf, idf):
         print(mot)
 
 
-def mots_plus_répétés_par_président(president_name,tf_list,files_names):
+def mots_plus_répétés_par_président(president_name,tf_list,files_names,non_important):
     """ Calcule le nombre de fois qu'un président donné prononce un mot donné """
     #Récuperer les noms des présidents
     noms = recup_nom(files_names)
@@ -244,19 +246,19 @@ def mots_plus_répétés_par_président(president_name,tf_list,files_names):
     for presidents_names in range(len(noms)) :
         if noms[presidents_names] == president_name :
             for words in tf_list[presidents_names]:
-                if tf_list[presidents_names][words] > valeur_mots_max:
+                if tf_list[presidents_names][words] > valeur_mots_max and words not in non_important:
                     mots_max = words
                     valeur_mots_max = tf_list[presidents_names][words]
             list_mot_max.append(mots_max)
             for words in tf_list[presidents_names]:
-                if tf_list[presidents_names][words] == valeur_mots_max and words != mots_max:
+                if tf_list[presidents_names][words] == valeur_mots_max and words not in list_mot_max and non_important:
                     list_mot_max.append(mots_max)
 
-    print("Le(s) mot(s) le(s) plus répété(s) par",president_name, "est (sont) :",list_mot_max)
+    return list_mot_max
 
 
 def mots_dit_par_présidents(mot,tf_list,files_names):
-    """ Calcule le nombre de fois qu'un président d'une liste donné à prononcé un mot donné et celui ayant dit le plus de fois"""
+    """ Calcule le nombre de fois qu'un président d'une liste donné à prononcé un mot donné et celui l'ayant dit le plus de fois """
     # Récuperer les noms des présidents
     noms = recup_nom(files_names)
 
@@ -442,19 +444,17 @@ def generation_reponse(question,idf,matrice_tf_idf,dossier):
     final = similarite(m,matrice_tf_idf)
     doc_plus_pertinent = plus_pertinent(final)
     mot_important = mot_plus_haut(m,idf)
-    
+
     # Ouvrir le fichier le plus pertinent
     fichier = os.listdir(dossier)[doc_plus_pertinent]
-    fichier_entre = os.path.join(dossier, fichier)
+    fichier_entre = os.path.join(dossier, fichier)    
     with open(fichier_entre,"r") as f:
         # Lire chaque phrase du fichier
         contenue = f.read().split(".")
         for i in range(len(contenue)):
             if mot_important in contenue[i]:
-                return contenue[i]  # Retourner la phrase avec le mot le plus élevé
+                return doc_plus_pertinent,mot_important,contenue[i]  # Retourner les informations pour générer la phrase avec le mot le plus élevé
     
 
 
             
-
-
