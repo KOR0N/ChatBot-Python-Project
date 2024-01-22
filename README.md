@@ -1,6 +1,7 @@
 # Membre de l’équipe :
 - Le Galliard Alexandre 
 - Dauvel Alexandre
+- Mathis Gosselin
 
 Lien vers le dépot Git :
 https://github.com/KOR0N/Projet-Python
